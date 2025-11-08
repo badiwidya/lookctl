@@ -71,7 +71,13 @@ func getInstalledIconThemes() []string {
 func getInstalledCursorThemes() []string {
 	cursorSearchPaths := getAssetSearchPaths("icons", ".icons")
 
+	excluded := []string{"default"}
+
 	cursorList := getAssets(cursorSearchPaths, func(fullPath, name string) bool {
+		if slices.Contains(excluded, name) {
+			return false
+		}
+
 		return isFile(filepath.Join(fullPath, "index.theme")) && isDir(filepath.Join(fullPath, "cursors"))
 	})
 
