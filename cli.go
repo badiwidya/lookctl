@@ -60,3 +60,20 @@ func list(args []string) error {
 
 	return nil
 }
+
+func current(args []string) error {
+	if len(args) > 0 {
+		return fmt.Errorf("error: 'current' takes no argument")
+	}
+
+	currentTheme, err := getCurrentTheme()
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stdout, "GTK Theme	: %s\n", currentTheme.gtkTheme)
+	fmt.Fprintf(os.Stdout, "Icon Theme	: %s\n", currentTheme.iconTheme)
+	fmt.Fprintf(os.Stdout, "Cursor Theme	: %s\n", currentTheme.cursorTheme)
+
+	return nil
+}
