@@ -51,6 +51,8 @@ func getInstalledThemes() []string {
 		return isFile(filepath.Join(fullPath, "index.theme"))
 	})
 
+	slices.Sort(themeList)
+
 	return themeList
 }
 
@@ -88,6 +90,8 @@ func getInstalledIconThemes() []string {
 		})
 	})
 
+	slices.Sort(iconList)
+
 	return iconList
 }
 
@@ -103,6 +107,8 @@ func getInstalledCursorThemes() []string {
 
 		return isFile(filepath.Join(fullPath, "index.theme")) && isDir(filepath.Join(fullPath, "cursors"))
 	})
+
+	slices.Sort(cursorList)
 
 	return cursorList
 }
