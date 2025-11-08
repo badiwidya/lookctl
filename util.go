@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -13,6 +14,21 @@ const (
 	envXdgDataDirs = "XDG_DATA_DIRS"
 	envHome        = "HOME"
 )
+
+func getGsettingsValue(schema, key string) (string, error) {
+	cmd := exec.Command("gsettings", "get", schema, key)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	outStr := strings.TrimSpace(string(out))
+
+	outStr = strings.Trim(outStr, "'")
+
+	return outStr, nil
+}
 
 func getAssetSearchPaths(subDir, legacyDir string) []string {
 	assetPaths := []string{}

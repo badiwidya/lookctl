@@ -7,6 +7,37 @@ import (
 	"slices"
 )
 
+const gnomeDesktopInterface = "org.gnome.desktop.interface"
+
+type themeConfig struct {
+	gtkTheme    string
+	iconTheme   string
+	cursorTheme string
+}
+
+func getCurrentTheme() (themeConfig, error) {
+	gtkTheme, err := getGsettingsValue(gnomeDesktopInterface, "gtk-theme")
+	if err != nil {
+		return themeConfig{}, fmt.Errorf("error: failed to read gtk theme information: %w", err)
+	}
+
+	iconTheme, err := getGsettingsValue(gnomeDesktopInterface, "icon-theme")
+	if err != nil {
+		return themeConfig{}, fmt.Errorf("error: failed to read icon theme information: %w", err)
+	}
+
+	cursorTheme, err := getGsettingsValue(gnomeDesktopInterface, "cursor-theme")
+	if err != nil {
+		return themeConfig{}, fmt.Errorf("error: failed to read cursor theme information: %w", err)
+	}
+
+	return themeConfig{
+		gtkTheme:    gtkTheme,
+		iconTheme:   iconTheme,
+		cursorTheme: cursorTheme,
+	}, nil
+}
+
 func getInstalledThemes() []string {
 	themeSearchPaths := getAssetSearchPaths("themes", ".themes")
 
