@@ -166,7 +166,7 @@ func printMainHelp(w io.Writer) {
 
 func printListHelp(w io.Writer) {
 	fmt.Fprintf(w, "Usage: lookctl list [argument]\n\n")
-	fmt.Fprintf(w, "Commands:\n")
+	fmt.Fprintf(w, "Arguments:\n")
 	fmt.Fprintf(w, "   theme	Show installed themes (selected by default)\n")
 	fmt.Fprintf(w, "   icon		Show installed icon themes\n")
 	fmt.Fprintf(w, "   cursor	Show installed cursor themes\n\n")
