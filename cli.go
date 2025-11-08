@@ -12,14 +12,14 @@ func help(args []string) error {
 	}
 
 	if len(args) > 1 {
-		return fmt.Errorf("error: 'help' only accepts one argument")
+		return fmt.Errorf("'help' only accepts one argument")
 	}
 
 	switch args[0] {
 	case "list":
 		printListHelp(os.Stdout)
 	default:
-		return fmt.Errorf("error: subcommand '%s' not found", args[0])
+		return fmt.Errorf("subcommand '%s' not found", args[0])
 	}
 
 	return nil
@@ -27,7 +27,7 @@ func help(args []string) error {
 
 func list(args []string) error {
 	if len(args) > 1 {
-		return fmt.Errorf("error: 'list' only accepts one argument")
+		return fmt.Errorf("'list' only accepts one argument")
 	}
 
 	arg := ""
@@ -51,7 +51,7 @@ func list(args []string) error {
 		printListHelp(os.Stdout)
 		return nil
 	default:
-		return fmt.Errorf("error: see 'lookctl help list' for more informations")
+		return fmt.Errorf("see 'lookctl help list' for more informations")
 	}
 
 	for i, asset := range assets {
@@ -63,7 +63,7 @@ func list(args []string) error {
 
 func current(args []string) error {
 	if len(args) > 0 {
-		return fmt.Errorf("error: 'current' takes no argument")
+		return fmt.Errorf("'current' takes no argument")
 	}
 
 	currentTheme, err := getCurrentTheme()

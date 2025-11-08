@@ -11,7 +11,7 @@ var ErrUsage = errors.New("")
 func main() {
 	if err := run(); err != nil {
 		if !errors.Is(err, ErrUsage) {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		}
 		os.Exit(1)
 	}
