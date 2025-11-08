@@ -18,17 +18,17 @@ type themeConfig struct {
 func getCurrentTheme() (themeConfig, error) {
 	gtkTheme, err := getGsettingsValue(gnomeDesktopInterface, "gtk-theme")
 	if err != nil {
-		return themeConfig{}, fmt.Errorf("error: failed to read gtk theme information: %w", err)
+		return themeConfig{}, fmt.Errorf("failed to read gtk theme information: %w", err)
 	}
 
 	iconTheme, err := getGsettingsValue(gnomeDesktopInterface, "icon-theme")
 	if err != nil {
-		return themeConfig{}, fmt.Errorf("error: failed to read icon theme information: %w", err)
+		return themeConfig{}, fmt.Errorf("failed to read icon theme information: %w", err)
 	}
 
 	cursorTheme, err := getGsettingsValue(gnomeDesktopInterface, "cursor-theme")
 	if err != nil {
-		return themeConfig{}, fmt.Errorf("error: failed to read cursor theme information: %w", err)
+		return themeConfig{}, fmt.Errorf("failed to read cursor theme information: %w", err)
 	}
 
 	return themeConfig{
