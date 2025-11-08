@@ -42,7 +42,13 @@ func getInstalledIconThemes() []string {
 		"256x256", "512x512", "mimetypes",
 	}
 
+	excluded := []string{"hicolor", "locolor", "default", "gnome"}
+
 	iconList := getAssets(iconSearchPaths, func(fullPath, name string) bool {
+		if slices.Contains(excluded, name) {
+			return false
+		}
+
 		if !isFile(filepath.Join(fullPath, "index.theme")) {
 			return false
 		}
