@@ -248,3 +248,11 @@ func printListHelp(w io.Writer) {
 	fmt.Fprintf(w, "   icon		Show installed icon themes\n")
 	fmt.Fprintf(w, "   cursor	Show installed cursor themes\n\n")
 }
+
+func printSetHelp(w io.Writer) {
+	fmt.Fprintf(w, "Usage: lookctl set [argument] [theme_name]\n\n")
+	fmt.Fprintf(w, "Arguments:\n")
+	fmt.Fprintf(w, "   theme	Set theme\n")
+	fmt.Fprintf(w, "   icon		Set icon theme\n")
+	fmt.Fprintf(w, "   cursor	Set cursor theme\n\n")
+}
