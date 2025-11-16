@@ -81,6 +81,10 @@ func current(args []string) error {
 }
 
 func set(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("arguments cannot be empty. see 'lookctl help set' for more informations")
+	}
+
 	if len(args) != 2 && args[0] != "help" {
 		return fmt.Errorf("invalid arguments. see 'lookctl help set' for more informations")
 	}
