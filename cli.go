@@ -18,6 +18,8 @@ func help(args []string) error {
 	switch args[0] {
 	case "list":
 		printListHelp(os.Stdout)
+	case "set":
+		printSetHelp(os.Stdout)
 	default:
 		return fmt.Errorf("subcommand '%s' not found", args[0])
 	}
@@ -74,6 +76,41 @@ func current(args []string) error {
 	fmt.Fprintf(os.Stdout, "GTK Theme	: %s\n", currentTheme.gtkTheme)
 	fmt.Fprintf(os.Stdout, "Icon Theme	: %s\n", currentTheme.iconTheme)
 	fmt.Fprintf(os.Stdout, "Cursor Theme	: %s\n", currentTheme.cursorTheme)
+
+	return nil
+}
+
+func set(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("arguments cannot be empty. see 'lookctl help set' for more informations")
+	}
+
+	if len(args) != 2 && args[0] != "help" {
+		return fmt.Errorf("invalid arguments. see 'lookctl help set' for more informations")
+	}
+
+	arg := args[0]
+
+	var err error
+	switch arg {
+	case "theme":
+		err = setTheme(args[1])
+	case "cursor":
+		err = setCursorTheme(args[1])
+	case "icon":
+		err = setIconTheme(args[1])
+	case "help":
+		printSetHelp(os.Stdout)
+		return nil
+	default:
+		return fmt.Errorf("invalid arguments. see 'lookctl help set' for more informations")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(os.Stdout, "theme changed successfully!")
 
 	return nil
 }

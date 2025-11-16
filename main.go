@@ -34,6 +34,8 @@ func run() error {
 		err = list(cmdArgs)
 	case "current":
 		err = current(cmdArgs)
+	case "set":
+		err = set(cmdArgs)
 	}
 
 	if err != nil {
