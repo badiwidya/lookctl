@@ -36,6 +36,9 @@ func run() error {
 		err = current(cmdArgs)
 	case "set":
 		err = set(cmdArgs)
+	default:
+		printMainHelp(os.Stderr)
+		return fmt.Errorf("unknown command: '%s'", cmd)
 	}
 
 	if err != nil {
