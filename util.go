@@ -12,8 +12,108 @@ import (
 const (
 	envXdgDataHome = "XDG_DATA_HOME"
 	envXdgDataDirs = "XDG_DATA_DIRS"
+	envConfigHome  = "XDG_CONFIG_HOME"
 	envHome        = "HOME"
 )
+
+func saveCurrentTheme(cfg themeConfig) error {
+	if err := saveConfigToFile(cfg); err != nil {
+		return err
+	}
+
+	if err := saveConfigWithGsettings(cfg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func saveConfigToFile(cfg themeConfig) error {
+	settingsIniContent := fmt.Sprintf(
+		`[Settings]
+gtk-theme-name=%s
+gtk-icon-theme-name=%s
+gtk-cursor-theme-name=%s
+gtk-application-prefer-dark-theme=%t`,
+		cfg.gtkTheme,
+		cfg.iconTheme,
+		cfg.cursorTheme,
+		cfg.preferDark,
+	)
+
+	gtkrc2Content := fmt.Sprintf(
+		`gtk-theme-name="%s"
+gtk-icon-theme-name="%s"
+gtk-cursor-theme-name="%s"`,
+		cfg.gtkTheme,
+		cfg.iconTheme,
+		cfg.cursorTheme,
+	)
+
+	configHome := getConfigDir()
+
+	gtk2File := filepath.Join(os.Getenv(envHome), ".gtkrc-2.0")
+	gtk3Dir := filepath.Join(configHome, "gtk-3.0")
+	gtk4Dir := filepath.Join(configHome, "gtk-4.0")
+
+	if err := os.MkdirAll(gtk3Dir, 0o755); err != nil {
+		return fmt.Errorf("failed to create gtk-3.0 directory: %w", err)
+	}
+
+	if err := os.MkdirAll(gtk4Dir, 0o755); err != nil {
+		return fmt.Errorf("failed to create gtk-4.0 directory: %w", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(gtk3Dir, "settings.ini"), []byte(settingsIniContent), 0o644); err != nil {
+		return fmt.Errorf("failed to write to gtk-3.0/settings.ini: %w", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(gtk4Dir, "settings.ini"), []byte(settingsIniContent), 0o644); err != nil {
+		return fmt.Errorf("failed to write to gtk-4.0/settings.ini: %w", err)
+	}
+
+	if err := os.WriteFile(gtk2File, []byte(gtkrc2Content), 0o644); err != nil {
+		return fmt.Errorf("failed to write to .gtkrc-2.0: %w", err)
+	}
+
+	return nil
+}
+
+func saveConfigWithGsettings(cfg themeConfig) error {
+	colorScheme := "prefer-light"
+
+	if cfg.preferDark {
+		colorScheme = "prefer-dark"
+	}
+
+	if err := setGsettingsValue(gnomeDesktopInterface, "gtk-theme", cfg.gtkTheme); err != nil {
+		return fmt.Errorf("failed to set gtk theme: %w", err)
+	}
+
+	if err := setGsettingsValue(gnomeDesktopInterface, "icon-theme", cfg.iconTheme); err != nil {
+		return fmt.Errorf("failed to set icon theme: %w", err)
+	}
+
+	if err := setGsettingsValue(gnomeDesktopInterface, "cursor-theme", cfg.cursorTheme); err != nil {
+		return fmt.Errorf("failed to set cursor theme: %w", err)
+	}
+
+	if err := setGsettingsValue(gnomeDesktopInterface, "color-scheme", colorScheme); err != nil {
+		return fmt.Errorf("failed to set color scheme: %w", err)
+	}
+
+	return nil
+}
+
+func setGsettingsValue(schema, key, value string) error {
+	cmd := exec.Command("gsettings", "set", schema, key, value)
+
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func getGsettingsValue(schema, key string) (string, error) {
 	cmd := exec.Command("gsettings", "get", schema, key)
@@ -91,6 +191,15 @@ func getDataDirs() []string {
 	return dataDirs
 }
 
+func getConfigDir() string {
+	configHome := os.Getenv(envConfigHome)
+	if configHome == "" {
+		configHome = filepath.Join(os.Getenv(envHome), ".config")
+	}
+
+	return configHome
+}
+
 func isDir(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -111,6 +220,16 @@ func isFile(path string) bool {
 	}
 
 	return true
+}
+
+func containsAny(s string, substrs []string) bool {
+	for _, sub := range substrs {
+		if strings.Contains(s, sub) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func printMainHelp(w io.Writer) {

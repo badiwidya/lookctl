@@ -77,3 +77,32 @@ func current(args []string) error {
 
 	return nil
 }
+
+func set(args []string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("invalid arguments. see 'lookctl help set' for more informations")
+	}
+
+	themeType := args[0]
+	themeName := args[1]
+
+	var err error
+	switch themeType {
+	case "theme":
+		err = setTheme(themeName)
+	case "cursor":
+		err = setCursorTheme(themeName)
+	case "icon":
+		err = setIconTheme(themeName)
+	default:
+		return fmt.Errorf("invalid arguments. see 'lookctl help set' for more informations")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(os.Stdout, "theme changed successfully!")
+
+	return nil
+}
