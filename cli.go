@@ -77,6 +77,13 @@ func current(args []string) error {
 	fmt.Fprintf(os.Stdout, "Icon Theme	: %s\n", currentTheme.iconTheme)
 	fmt.Fprintf(os.Stdout, "Cursor Theme	: %s\n", currentTheme.cursorTheme)
 
+	colorScheme := "light"
+	if currentTheme.preferDark {
+		colorScheme = "dark"
+	}
+
+	fmt.Fprintf(os.Stdout, "Color Scheme	: %s\n", colorScheme)
+
 	return nil
 }
 
@@ -99,6 +106,8 @@ func set(args []string) error {
 		err = setCursorTheme(args[1])
 	case "icon":
 		err = setIconTheme(args[1])
+	case "color-scheme":
+		err = setColorScheme(args[1])
 	case "help":
 		printSetHelp(os.Stdout)
 		return nil

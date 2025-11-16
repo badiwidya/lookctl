@@ -212,3 +212,25 @@ func setCursorTheme(themeName string) error {
 
 	return nil
 }
+
+func setColorScheme(colorScheme string) error {
+	currentConfig, err := getCurrentTheme()
+	if err != nil {
+		return err
+	}
+
+	switch colorScheme {
+	case "dark":
+		currentConfig.preferDark = true
+	case "light":
+		currentConfig.preferDark = false
+	default:
+		return fmt.Errorf("invalid color scheme. must be either 'dark' or 'light'")
+	}
+
+	if err := saveCurrentTheme(currentConfig); err != nil {
+		return err
+	}
+
+	return nil
+}
