@@ -126,16 +126,11 @@ func getInstalledCursorThemes() []string {
 	return cursorList
 }
 
-func setTheme(themeName string) error {
+func setTheme(cfg *themeConfig, themeName string) error {
 	installedThemes := getInstalledThemes()
 
 	if !slices.Contains(installedThemes, themeName) {
-		return fmt.Errorf("theme not found. see 'lookctl list theme' for list available themes")
-	}
-
-	currentConfig, err := getCurrentTheme()
-	if err != nil {
-		return err
+		return fmt.Errorf("theme not found. see 'lookctl list -gtk' for list available gtk themes")
 	}
 
 	lightKeywords := []string{
@@ -161,75 +156,44 @@ func setTheme(themeName string) error {
 		preferDark = true
 	}
 
-	currentConfig.gtkTheme = themeName
-	currentConfig.preferDark = preferDark
-
-	if err := saveCurrentTheme(currentConfig); err != nil {
-		return err
-	}
+	cfg.gtkTheme = themeName
+	cfg.preferDark = preferDark
 
 	return nil
 }
 
-func setIconTheme(themeName string) error {
+func setIconTheme(cfg *themeConfig, themeName string) error {
 	installedIconThemes := getInstalledIconThemes()
 
 	if !slices.Contains(installedIconThemes, themeName) {
-		return fmt.Errorf("icon theme not found. see 'lookctl list icon' for list available themes")
+		return fmt.Errorf("icon theme not found. see 'lookctl list -icon' for list available themes")
 	}
 
-	currentConfig, err := getCurrentTheme()
-	if err != nil {
-		return err
-	}
-
-	currentConfig.iconTheme = themeName
-
-	if err := saveCurrentTheme(currentConfig); err != nil {
-		return err
-	}
+	cfg.iconTheme = themeName
 
 	return nil
 }
 
-func setCursorTheme(themeName string) error {
+func setCursorTheme(cfg *themeConfig, themeName string) error {
 	installedCursorThemes := getInstalledCursorThemes()
 
 	if !slices.Contains(installedCursorThemes, themeName) {
-		return fmt.Errorf("cursor theme not found. see 'lookctl list cursor' for list available themes")
+		return fmt.Errorf("cursor theme not found. see 'lookctl list -cursor' for list available themes")
 	}
 
-	currentConfig, err := getCurrentTheme()
-	if err != nil {
-		return err
-	}
-
-	currentConfig.cursorTheme = themeName
-
-	if err := saveCurrentTheme(currentConfig); err != nil {
-		return err
-	}
+	cfg.cursorTheme = themeName
 
 	return nil
 }
 
-func setColorScheme(colorScheme string) error {
-	currentConfig, err := getCurrentTheme()
-	if err != nil {
-		return err
-	}
-
+func setColorScheme(cfg *themeConfig, colorScheme string) error {
 	switch colorScheme {
 	case "dark":
-		currentConfig.preferDark = true
+		cfg.preferDark = true
 	case "light":
-		currentConfig.preferDark = false
+		cfg.preferDark = false
 	default:
 		return fmt.Errorf("invalid color scheme. must be either 'dark' or 'light'")
-	}
-
-	if err := saveCurrentTheme(currentConfig); err != nil {
-		return err
 	}
 
 	return nil

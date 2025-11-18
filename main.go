@@ -1,35 +1,37 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 )
 
-var ErrUsage = errors.New("")
-
 func main() {
-	if err := run(); err != nil {
-		if !errors.Is(err, ErrUsage) {
-			fmt.Fprintf(os.Stderr, "error: %s\n", err)
-		}
+	if err := run(os.Args[1:]); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
 	}
 }
 
-func run() error {
-	if len(os.Args) < 2 {
-		printMainHelp(os.Stderr)
-		return ErrUsage
+func run(args []string) error {
+	fs := newFlagSet("lookctl")
+
+	if err := parseFlag(fs, args, printMainHelp); err != nil {
+		return err
 	}
 
-	cmd := os.Args[1]
-	cmdArgs := os.Args[2:]
+	tw := newTabWriter(os.Stderr)
+
+	if fs.NArg() == 0 {
+		printMainHelp(tw)
+		tw.Flush()
+		return fmt.Errorf("please specify a command")
+	}
+
+	cmd := fs.Arg(0)
+	cmdArgs := fs.Args()[1:]
 
 	var err error
 	switch cmd {
-	case "help":
-		err = help(cmdArgs)
 	case "list":
 		err = list(cmdArgs)
 	case "current":
@@ -37,8 +39,7 @@ func run() error {
 	case "set":
 		err = set(cmdArgs)
 	default:
-		printMainHelp(os.Stderr)
-		return fmt.Errorf("unknown command: '%s'", cmd)
+		return fmt.Errorf("unknown command: '%s'. see 'lookctl -h' for more information", cmd)
 	}
 
 	if err != nil {
