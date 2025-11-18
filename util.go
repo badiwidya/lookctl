@@ -294,7 +294,7 @@ func printSetHelp(w *tabwriter.Writer) {
 	fmt.Fprintln(w, "Usage: lookctl set [options] [arguments]")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Options:")
-	fmt.Fprintln(w, "\t-color-scheme, --color-scheme\tManually set cursor theme")
+	fmt.Fprintln(w, "\t-color-scheme, --color-scheme\tManually set color theme")
 	fmt.Fprintln(w, "\t-cursor, --cursor\tSet cursor theme")
 	fmt.Fprintln(w, "\t-gtk, --gtk\tSet theme")
 	fmt.Fprintln(w, "\t-icon, --icon\tSet icon theme")

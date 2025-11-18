@@ -23,7 +23,6 @@ func run(args []string) error {
 
 	if fs.NArg() == 0 {
 		printMainHelp(tw)
-		tw.Flush()
 		return fmt.Errorf("please specify a command")
 	}
 
