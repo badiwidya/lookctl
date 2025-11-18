@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"text/tabwriter"
 )
 
 const (
@@ -232,27 +235,76 @@ func containsAny(s string, substrs []string) bool {
 	return false
 }
 
-func printMainHelp(w io.Writer) {
-	fmt.Fprintf(w, "Usage: lookctl <command> [arguments]\n\n")
-	fmt.Fprintf(w, "Commands:\n")
-	fmt.Fprintf(w, "   list		Show installed themes\n")
-	fmt.Fprintf(w, "   set		Set the theme, icon, or cursor\n")
-	fmt.Fprintf(w, "   current	Show the currently used theme, icon, and cursor\n\n")
-	fmt.Fprintf(w, "Run 'lookctl help <command>' for more information on a command.\n")
+func newFlagSet(name string) *flag.FlagSet {
+	fs := flag.NewFlagSet(name, flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	return fs
 }
 
-func printListHelp(w io.Writer) {
-	fmt.Fprintf(w, "Usage: lookctl list [argument]\n\n")
-	fmt.Fprintf(w, "Arguments:\n")
-	fmt.Fprintf(w, "   theme	Show installed themes (selected by default)\n")
-	fmt.Fprintf(w, "   icon		Show installed icon themes\n")
-	fmt.Fprintf(w, "   cursor	Show installed cursor themes\n\n")
+func parseFlag(fs *flag.FlagSet, args []string, printHelp func(*tabwriter.Writer)) error {
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			printHelp(newTabWriter(os.Stdout))
+			os.Exit(0)
+		}
+
+		if strings.Contains(err.Error(), "provided but not defined") {
+			flagName := strings.Split(err.Error(), "-")
+			return fmt.Errorf("unknown flag: -%s", flagName[1])
+		}
+
+		return err
+	}
+
+	return nil
 }
 
-func printSetHelp(w io.Writer) {
-	fmt.Fprintf(w, "Usage: lookctl set [argument] [theme_name]\n\n")
-	fmt.Fprintf(w, "Arguments:\n")
-	fmt.Fprintf(w, "   theme	Set theme\n")
-	fmt.Fprintf(w, "   icon		Set icon theme\n")
-	fmt.Fprintf(w, "   cursor	Set cursor theme\n\n")
+func newTabWriter(w io.Writer) *tabwriter.Writer {
+	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
+
+	return tw
+}
+
+func printMainHelp(w *tabwriter.Writer) {
+	fmt.Fprintln(w, "Usage: lookctl <command> [arguments]")
+	fmt.Fprintln(w, "")
+	fmt.Fprintln(w, "Commands:")
+	fmt.Fprintln(w, "\tcurrent\tShow the currently used theme, icon, and cursor")
+	fmt.Fprintln(w, "\tlist\tShow installed themes")
+	fmt.Fprintln(w, "\tset\tSet the theme, icon, or cursor")
+	fmt.Fprintln(w, "")
+	fmt.Fprintln(w, "Run 'lookctl <command> -h' for more information on a command.")
+
+	w.Flush()
+}
+
+func printListHelp(w *tabwriter.Writer) {
+	fmt.Fprintln(w, "Usage: lookctl list [options]")
+	fmt.Fprintln(w, "")
+	fmt.Fprintln(w, "Options:")
+	fmt.Fprintln(w, "\t-cursor, --cursor\tShow installed cursor themes")
+	fmt.Fprintln(w, "\t-gtk, --gtk\tShow installed themes (selected by default)")
+	fmt.Fprintln(w, "\t-icon, --icon\tShow installed icon themes")
+
+	w.Flush()
+}
+
+func printSetHelp(w *tabwriter.Writer) {
+	fmt.Fprintln(w, "Usage: lookctl set [options] [arguments]")
+	fmt.Fprintln(w, "")
+	fmt.Fprintln(w, "Options:")
+	fmt.Fprintln(w, "\t-color-scheme, --color-scheme\tManually set color theme")
+	fmt.Fprintln(w, "\t-cursor, --cursor\tSet cursor theme")
+	fmt.Fprintln(w, "\t-gtk, --gtk\tSet theme")
+	fmt.Fprintln(w, "\t-icon, --icon\tSet icon theme")
+
+	w.Flush()
+}
+
+func printCurrentHelp(w *tabwriter.Writer) {
+	fmt.Fprintln(w, "Usage: lookctl current")
+	fmt.Fprintln(w, "Show applied themes")
+
+	w.Flush()
 }

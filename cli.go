@@ -5,67 +5,71 @@ import (
 	"os"
 )
 
-func help(args []string) error {
-	if len(args) == 0 {
-		printMainHelp(os.Stdout)
-		return nil
-	}
-
-	if len(args) > 1 {
-		return fmt.Errorf("'help' only accepts one argument")
-	}
-
-	switch args[0] {
-	case "list":
-		printListHelp(os.Stdout)
-	case "set":
-		printSetHelp(os.Stdout)
-	default:
-		return fmt.Errorf("subcommand '%s' not found", args[0])
-	}
-
-	return nil
-}
-
 func list(args []string) error {
-	if len(args) > 1 {
-		return fmt.Errorf("'list' only accepts one argument")
+	fs := newFlagSet("list")
+
+	showGtk := fs.Bool("gtk", false, "Show installed gtk themes")
+	showIcon := fs.Bool("icon", false, "Show installed icon themes")
+	showCursor := fs.Bool("cursor", false, "Show installed cursor themes")
+
+	if err := parseFlag(fs, args, printListHelp); err != nil {
+		return err
 	}
 
-	arg := ""
-
-	if len(args) == 0 {
-		arg = "theme"
-	} else {
-		arg = args[0]
+	if fs.NArg() != 0 {
+		return fmt.Errorf("'list' does not accept arguments; use flags instead")
 	}
 
-	assets := []string{}
-
-	switch arg {
-	case "theme":
-		assets = getInstalledThemes()
-	case "cursor":
-		assets = getInstalledCursorThemes()
-	case "icon":
-		assets = getInstalledIconThemes()
-	case "help":
-		printListHelp(os.Stdout)
-		return nil
-	default:
-		return fmt.Errorf("see 'lookctl help list' for more informations")
+	if fs.NFlag() == 0 {
+		*showGtk = true
 	}
 
-	for i, asset := range assets {
-		fmt.Fprintf(os.Stdout, "[%d] %s\n", i+1, asset)
+	tw := newTabWriter(os.Stdout)
+
+	if *showGtk {
+		fmt.Fprintf(tw, "GTK Themes:\n")
+
+		gtkThemes := getInstalledThemes()
+
+		for i, theme := range gtkThemes {
+			fmt.Fprintf(tw, "\t[%d]\t%s\n", i+1, theme)
+		}
 	}
+
+	if *showIcon {
+		fmt.Fprintf(tw, "Icon Themes:\n")
+
+		iconThemes := getInstalledIconThemes()
+
+		for i, theme := range iconThemes {
+			fmt.Fprintf(tw, "\t[%d]\t%s\n", i+1, theme)
+		}
+	}
+
+	if *showCursor {
+		fmt.Fprintf(tw, "Cursor Themes:\n")
+
+		cursorThemes := getInstalledCursorThemes()
+
+		for i, theme := range cursorThemes {
+			fmt.Fprintf(tw, "\t[%d]\t%s\n", i+1, theme)
+		}
+	}
+
+	tw.Flush()
 
 	return nil
 }
 
 func current(args []string) error {
-	if len(args) > 0 {
-		return fmt.Errorf("'current' takes no argument")
+	fs := newFlagSet("current")
+
+	if err := parseFlag(fs, args, printCurrentHelp); err != nil {
+		return err
+	}
+
+	if fs.NFlag() > 0 || fs.NArg() > 0 {
+		return fmt.Errorf("'current' accepts no flags or arguments")
 	}
 
 	currentTheme, err := getCurrentTheme()
@@ -73,53 +77,78 @@ func current(args []string) error {
 		return err
 	}
 
-	fmt.Fprintf(os.Stdout, "GTK Theme	: %s\n", currentTheme.gtkTheme)
-	fmt.Fprintf(os.Stdout, "Icon Theme	: %s\n", currentTheme.iconTheme)
-	fmt.Fprintf(os.Stdout, "Cursor Theme	: %s\n", currentTheme.cursorTheme)
+	tw := newTabWriter(os.Stdout)
+
+	fmt.Fprintf(tw, "GTK Theme\t: %s\n", currentTheme.gtkTheme)
+	fmt.Fprintf(tw, "Icon Theme\t: %s\n", currentTheme.iconTheme)
+	fmt.Fprintf(tw, "Cursor Theme\t: %s\n", currentTheme.cursorTheme)
 
 	colorScheme := "light"
 	if currentTheme.preferDark {
 		colorScheme = "dark"
 	}
 
-	fmt.Fprintf(os.Stdout, "Color Scheme	: %s\n", colorScheme)
+	fmt.Fprintf(tw, "Color Scheme\t: %s\n", colorScheme)
+
+	tw.Flush()
 
 	return nil
 }
 
 func set(args []string) error {
-	if len(args) == 0 {
-		return fmt.Errorf("arguments cannot be empty. see 'lookctl help set' for more informations")
+	fs := newFlagSet("set")
+
+	gtkTheme := fs.String("gtk", "", "Set gtk theme")
+	iconTheme := fs.String("icon", "", "Set icon theme")
+	cursorTheme := fs.String("cursor", "", "Set cursor theme")
+	colorScheme := fs.String("color-scheme", "", "Manually set color scheme")
+
+	if err := parseFlag(fs, args, printSetHelp); err != nil {
+		return err
 	}
 
-	if len(args) != 2 && args[0] != "help" {
-		return fmt.Errorf("invalid arguments. see 'lookctl help set' for more informations")
+	if fs.NArg() != 0 {
+		return fmt.Errorf("'set' does not accept arguments; use flags instead")
 	}
 
-	arg := args[0]
-
-	var err error
-	switch arg {
-	case "theme":
-		err = setTheme(args[1])
-	case "cursor":
-		err = setCursorTheme(args[1])
-	case "icon":
-		err = setIconTheme(args[1])
-	case "color-scheme":
-		err = setColorScheme(args[1])
-	case "help":
-		printSetHelp(os.Stdout)
-		return nil
-	default:
-		return fmt.Errorf("invalid arguments. see 'lookctl help set' for more informations")
+	if fs.NFlag() == 0 {
+		return fmt.Errorf("please specify one or more flags")
 	}
 
+	currentCfg, err := getCurrentTheme()
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(os.Stdout, "theme changed successfully!")
+	if *gtkTheme != "" {
+		if err := setTheme(&currentCfg, *gtkTheme); err != nil {
+			return err
+		}
+	}
+
+	if *iconTheme != "" {
+		if err := setIconTheme(&currentCfg, *iconTheme); err != nil {
+			return err
+		}
+	}
+
+	if *cursorTheme != "" {
+		if err := setCursorTheme(&currentCfg, *cursorTheme); err != nil {
+			return err
+		}
+	}
+
+	if *colorScheme != "" {
+		if err := setColorScheme(&currentCfg, *colorScheme); err != nil {
+			return err
+		}
+	}
+
+	if err := saveCurrentTheme(currentCfg); err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stdout, "changes saved successfully!\n")
 
 	return nil
 }
