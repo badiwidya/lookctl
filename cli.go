@@ -79,16 +79,16 @@ func current(args []string) error {
 
 	tw := newTabWriter(os.Stdout)
 
-	fmt.Fprintln(tw, "GTK Theme\t: %s", currentTheme.gtkTheme)
-	fmt.Fprintln(tw, "Icon Theme\t: %s", currentTheme.iconTheme)
-	fmt.Fprintln(tw, "Cursor Theme\t: %s", currentTheme.cursorTheme)
+	fmt.Fprintf(tw, "GTK Theme\t: %s\n", currentTheme.gtkTheme)
+	fmt.Fprintf(tw, "Icon Theme\t: %s\n", currentTheme.iconTheme)
+	fmt.Fprintf(tw, "Cursor Theme\t: %s\n", currentTheme.cursorTheme)
 
 	colorScheme := "light"
 	if currentTheme.preferDark {
 		colorScheme = "dark"
 	}
 
-	fmt.Fprintln(tw, "Color Scheme\t: %s", colorScheme)
+	fmt.Fprintf(tw, "Color Scheme\t: %s\n", colorScheme)
 
 	tw.Flush()
 
